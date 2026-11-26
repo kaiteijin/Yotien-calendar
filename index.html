@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="送迎予定">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+<title>幼稚園送迎予定</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E9E3D2;
+    --card: #FFFFFF;
+    --ink: #33302A;
+    --muted: #7D7666;
+    --line: #D8D0BA;
+    --line-strong: #C6BDA3;
+    --am: #E3A23C;
+    --am-soft: #FBEBD1;
+    --pm: #4E7A96;
+    --pm-soft: #DEEAF1;
+    --go: #5F9575;
+    --go-soft: #E1EFE4;
+    --holiday: #BF5B4E;
+    --holiday-soft: #F8E4E0;
+    --sat: #3E6E93;
+    --today-ring: #33302A;
+    --am-ink: #7A4B00;
+    --pm-ink: #26506C;
+    --go-ink: #24593B;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-sizing: border-box;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1E1C18;
+      --card: #29261F;
+      --ink: #EDE8DE;
+      --muted: #A79E8E;
+      --line: #3C382F;
+      --line-strong: #4A4436;
+      --am-soft: #4A3A1E;
+      --pm-soft: #223846;
+      --go-soft: #223A2B;
+      --holiday-soft: #47281F;
+      --today-ring: #EDE8DE;
+      --am-ink: #F2C46F;
+      --pm-ink: #A5CBE4;
+      --go-ink: #A6D6B8;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1E1C18;
+    --card: #29261F;
+    --ink: #EDE8DE;
+    --muted: #A79E8E;
+    --line: #3C382F;
+    --line-strong: #4A4436;
+    --am-soft: #4A3A1E;
+    --pm-soft: #223846;
+    --go-soft: #223A2B;
+    --holiday-soft: #47281F;
+    --today-ring: #EDE8DE;
+      --am-ink: #F2C46F;
+      --pm-ink: #A5CBE4;
+      --go-ink: #A6D6B8;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  button { touch-action: manipulation; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 12px 6px 40px;
+  }
+  header.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  header.topbar h1 {
+    font-size: 19px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .bk-btn {
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px solid var(--line-strong);
+    border-radius: 9px;
+    padding: 7px 11px;
+    min-height: 44px;
+  }
+  .bk-note { font-size: 17px; line-height: 1.6; color: var(--muted); margin: 0 0 10px; }
+  #bkText { min-height: 120px; font-size: 18px; word-break: break-all; }
+  .btn.alt { background: var(--go-soft); color: var(--go); }
+  .month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .month-nav .month-label {
+    font-size: 26px;
+    font-weight: 900;
+  }
+  .month-nav button.navbtn {
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+    border: 1px solid var(--line-strong);
+    background: var(--card);
+    color: var(--ink);
+    font-size: 28px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .month-nav button.navbtn:active { transform: scale(0.94); }
+
+  .legend {
+    display: flex;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: var(--muted);
+  }
+  .legend span.dot {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border-radius: 3px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+  .legend .item { display: flex; align-items: center; }
+
+  .grid-wrap {
+    background: var(--card);
+    border: 2px solid var(--grid);
+    border-radius: 16px;
+    padding: 0;
+    overflow: hidden;
+  }
+  .weekday-row {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0;
+    margin-bottom: 0;
+    border-bottom: 1.5px solid var(--grid);
+  }
+  .weekday-row div {
+    text-align: center;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--muted);
+    padding: 6px 0 6px;
+  }
+  .weekday-row div.sun { color: var(--holiday); }
+  .weekday-row div.sat { color: var(--sat); }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0;
+  }
+  .day-cell {
+    position: relative;
+    min-width: 0;
+    min-height: 120px;
+    border-radius: 0;
+    border: none;
+    border-right: 1.5px solid var(--grid);
+    border-bottom: 1.5px solid var(--grid);
+    padding: 4px 1px 3px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: transparent;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .day-cell.outside { background: var(--bg); }
+  .day-cell.outside > * { opacity: 0.4; }
+  .day-cell.today {
+    box-shadow: inset 0 0 0 3px var(--today-ring);
+    background: var(--card);
+    padding: 6px 3px 3px;
+  }
+  .day-cell.today .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+    min-width: 30px;
+    height: 30px;
+    margin: 0;
+    padding: 0 4px;
+    border-radius: 15px;
+    background: var(--today-ring);
+    color: var(--card) !important;
+    font-weight: 900;
+  }
+  .day-cell .num {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .day-cell.sun .num, .day-cell.holiday .num { color: var(--holiday); }
+  .day-cell.sat .num { color: var(--sat); }
+  .day-cell .holiday-name {
+    font-size: 11px;
+    color: var(--holiday);
+    line-height: 1.15;
+    margin-top: 1px;
+    overflow: hidden;
+    max-height: 26px;
+  }
+  .day-cell .chips {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    max-width: 100%;
+  }
+  .chip {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 0 2px;
+    border-radius: 5px;
+    line-height: 1.45;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .chip.am { background: var(--am-soft); color: var(--am-ink); }
+  .chip.pm { background: var(--pm-soft); color: var(--pm-ink); }
+  .chip.go { background: var(--go-soft); color: var(--go-ink); }
+  .chip.go2 { background: #2F6B49; color: #FFFFFF; }
+  .memo-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+
+  .summary {
+    margin-top: 20px;
+  }
+  .summary h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--muted);
+    margin: 0 0 8px;
+  }
+  .summary .empty {
+    font-size: 17px;
+    color: var(--muted);
+    padding: 14px 0;
+    text-align: center;
+    border: 1px dashed var(--line-strong);
+    border-radius: 12px;
+  }
+  .summary-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .sdate {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--muted);
+    width: 74px;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+  .summary-row .sbody { flex: 1; min-width: 0; }
+  .summary-row .schips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 3px; }
+  .summary-row .smemo {
+    font-size: 18px;
+    color: var(--ink);
+    opacity: 0.85;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* bottom sheet */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 18, 14, 0.4);
+    display: none;
+    z-index: 40;
+  }
+  .overlay.open { display: block; }
+  .sheet {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: var(--card);
+    border-radius: 20px 20px 0 0;
+    padding: 12px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    transform: translateY(100%);
+    transition: transform 0.22s ease;
+    z-index: 41;
+    max-height: 88vh;
+    max-height: 88dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  .sheet.open { transform: translateY(0); }
+  .sheet .handle {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-strong);
+    margin: 0 auto 14px;
+  }
+  .sheet .sheet-date {
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 14px;
+  }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .field-pair { display: flex; gap: 10px; }
+  .field-pair .field { flex: 1; }
+  select, textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 20px;
+    min-height: 58px;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    padding: 10px 10px;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  select {
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 16px) center, calc(100% - 11px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 30px;
+  }
+  textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
+
+  .sheet-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .btn {
+    flex: 1;
+    border: none;
+    border-radius: 11px;
+    padding: 18px 0;
+    font-family: inherit;
+    font-size: 19px;
+    font-weight: 700;
+  }
+  .btn.save { background: var(--ink); color: var(--bg); }
+  .btn.delete { background: var(--holiday-soft); color: var(--holiday); }
+  .btn.close { background: var(--bg); color: var(--muted); border: 1px solid var(--line-strong); }
+  .btn:active { opacity: 0.85; }
+  :root { --grid: #9A9074; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --grid: #7A7160; } }
+  :root[data-theme="dark"] { --grid: #7A7160; }
+  .weekday-row div { border-right: 1.5px solid var(--grid); }
+  .weekday-row div:last-child { border-right: none; }
+  .day-cell:nth-child(7n) { border-right: none; }
+  .day-cell:nth-last-child(-n+7) { border-bottom: none; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <h1>幼稚園送迎予定</h1>
+    <button class="bk-btn" id="backupBtn" type="button">バックアップ</button>
+  </header>
+
+  <div class="month-nav">
+    <button class="navbtn" id="prevBtn" aria-label="前の月">‹</button>
+    <div class="month-label" id="monthLabel"></div>
+    <button class="navbtn" id="nextBtn" aria-label="次の月">›</button>
+  </div>
+
+  <div class="legend">
+    <div class="item"><span class="dot" style="background:var(--am)"></span>午前</div>
+    <div class="item"><span class="dot" style="background:var(--pm)"></span>午後</div>
+    <div class="item"><span class="dot" style="background:var(--go-soft);box-shadow:inset 0 0 0 2px var(--go-ink)"></span>送り</div>
+    <div class="item"><span class="dot" style="background:#2F6B49"></span>迎え</div>
+    <div class="item"><span class="dot" style="background:var(--muted)"></span>メモ</div>
+  </div>
+
+  <div class="grid-wrap">
+    <div class="weekday-row">
+      <div class="sun">日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div class="sat">土</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <div class="summary">
+    <h2 id="summaryLabel">今月の予定</h2>
+    <div id="summaryList"></div>
+  </div>
+</div>
+
+<div class="overlay" id="bkOverlay"></div>
+<div class="sheet" id="bkSheet">
+  <div class="handle"></div>
+  <div class="sheet-date">バックアップ</div>
+  <p class="bk-note">予定をコピーして、メモ帳などに保存できます。機種変更や消えたときは、保存した文字を下に貼り付けて「復元」を押してください。</p>
+  <div class="field">
+    <textarea id="bkText" spellcheck="false"></textarea>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn close" id="bkClose" type="button">閉じる</button>
+    <button class="btn alt" id="bkRestore" type="button">復元</button>
+    <button class="btn save" id="bkCopy" type="button">コピー</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="sheet">
+  <div class="handle"></div>
+  <div class="sheet-date" id="sheetDate"></div>
+
+  <div class="field">
+    <label for="shift">シフト</label>
+    <select id="shift"></select>
+  </div>
+
+  <div class="field-pair">
+    <div class="field">
+      <label for="dropoffTime">登園(送り)時間</label>
+      <select id="dropoffTime"></select>
+    </div>
+    <div class="field">
+      <label for="pickupTime">降園(迎え)時間</label>
+      <select id="pickupTime"></select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="memo">メモ</label>
+    <textarea id="memo" placeholder="持ち物や連絡事項など"></textarea>
+  </div>
+
+  <div class="sheet-actions">
+    <button class="btn close" id="closeBtn">閉じる</button>
+    <button class="btn delete" id="deleteBtn">削除</button>
+    <button class="btn save" id="saveBtn">保存</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "kaiteijin-kindergarten-schedule-v1";
+
+  var SHIFT_OPTIONS = ["", "午前", "午後"];
+
+  function buildTimeOptions() {
+    var opts = [""];
+    for (var h = 6; h <= 19; h++) {
+      for (var m = 0; m < 60; m += 10) {
+        if (h === 19 && m > 0) break;
+        var hh = (h < 10 ? "0" : "") + h;
+        var mm = (m < 10 ? "0" : "") + m;
+        opts.push(hh + ":" + mm);
+      }
+    }
+    return opts;
+  }
+  var TIME_OPTIONS = buildTimeOptions();
+
+  var HOLIDAYS = {
+    "2025-01-01": "元日", "2025-01-13": "成人の日", "2025-02-11": "建国記念の日",
+    "2025-02-23": "天皇誕生日", "2025-02-24": "休日", "2025-03-20": "春分の日",
+    "2025-04-29": "昭和の日", "2025-05-03": "憲法記念日", "2025-05-04": "みどりの日",
+    "2025-05-05": "こどもの日", "2025-05-06": "休日", "2025-07-21": "海の日",
+    "2025-08-11": "山の日", "2025-09-15": "敬老の日", "2025-09-23": "秋分の日",
+    "2025-10-13": "スポーツの日", "2025-11-03": "文化の日", "2025-11-23": "勤労感謝の日",
+    "2025-11-24": "休日",
+    "2026-01-01": "元日", "2026-01-12": "成人の日", "2026-02-11": "建国記念の日",
+    "2026-02-23": "天皇誕生日", "2026-03-20": "春分の日", "2026-04-29": "昭和の日",
+    "2026-05-03": "憲法記念日", "2026-05-04": "みどりの日", "2026-05-05": "こどもの日",
+    "2026-05-06": "休日", "2026-07-20": "海の日", "2026-08-11": "山の日",
+    "2026-09-21": "敬老の日", "2026-09-22": "国民の休日", "2026-09-23": "秋分の日",
+    "2026-10-12": "スポーツの日", "2026-11-03": "文化の日", "2026-11-23": "勤労感謝の日",
+    "2027-01-01": "元日", "2027-01-11": "成人の日", "2027-02-11": "建国記念の日",
+    "2027-02-23": "天皇誕生日", "2027-03-21": "春分の日", "2027-03-22": "休日",
+    "2027-04-29": "昭和の日", "2027-05-03": "憲法記念日", "2027-05-04": "みどりの日",
+    "2027-05-05": "こどもの日", "2027-07-19": "海の日", "2027-08-11": "山の日",
+    "2027-09-20": "敬老の日", "2027-09-23": "秋分の日", "2027-10-11": "スポーツの日",
+    "2027-11-03": "文化の日", "2027-11-23": "勤労感謝の日"
+  };
+
+  var records = {};
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) records = JSON.parse(raw);
+  } catch (e) {
+    records = {};
+  }
+
+  function persist() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    } catch (e) {
+      /* storage unavailable; state stays in memory for this session */
+    }
+  }
+
+  var today = new Date();
+  var todayKey = fmtKey(today.getFullYear(), today.getMonth(), today.getDate());
+  var viewYear = today.getFullYear();
+  var viewMonth = today.getMonth();
+  var activeKey = null;
+
+  function fmtKey(y, m, d) {
+    return y + "-" + String(m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+  }
+
+  function fillSelect(sel, options, labelFn) {
+    sel.innerHTML = "";
+    options.forEach(function (opt) {
+      var o = document.createElement("option");
+      o.value = opt;
+      o.textContent = opt === "" ? "未設定" : (labelFn ? labelFn(opt) : opt);
+      sel.appendChild(o);
+    });
+  }
+
+  var shiftSel = document.getElementById("shift");
+  var dropSel = document.getElementById("dropoffTime");
+  var pickSel = document.getElementById("pickupTime");
+  fillSelect(shiftSel, SHIFT_OPTIONS);
+  fillSelect(dropSel, TIME_OPTIONS);
+  fillSelect(pickSel, TIME_OPTIONS);
+
+  var calGrid = document.getElementById("calGrid");
+  var monthLabel = document.getElementById("monthLabel");
+  var summaryList = document.getElementById("summaryList");
+  var summaryLabel = document.getElementById("summaryLabel");
+  var overlay = document.getElementById("overlay");
+  var sheet = document.getElementById("sheet");
+  var sheetDate = document.getElementById("sheetDate");
+  var memoField = document.getElementById("memo");
+
+  function hasEntry(rec) {
+    return !!(rec && (rec.shift || rec.drop || rec.pick || (rec.memo && rec.memo.trim())));
+  }
+
+  function render() {
+    monthLabel.textContent = viewYear + "年" + (viewMonth + 1) + "月";
+    calGrid.innerHTML = "";
+
+    var firstOfMonth = new Date(viewYear, viewMonth, 1);
+    var startWeekday = firstOfMonth.getDay();
+    var daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    var daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
+
+    var cells = [];
+    for (var i = startWeekday - 1; i >= 0; i--) {
+      cells.push({ y: viewYear, m: viewMonth - 1, d: daysInPrevMonth - i, outside: true });
+    }
+    for (var d = 1; d <= daysInMonth; d++) {
+      cells.push({ y: viewYear, m: viewMonth, d: d, outside: false });
+    }
+    while (cells.length % 7 !== 0 || cells.length < 42) {
+      var last = cells[cells.length - 1];
+      var nd = new Date(last.y, last.m, last.d + 1);
+      cells.push({ y: nd.getFullYear(), m: nd.getMonth(), d: nd.getDate(), outside: true });
+      if (cells.length >= 42) break;
+    }
+
+    cells.forEach(function (c) {
+      var realDate = new Date(c.y, c.m, c.d);
+      var key = fmtKey(realDate.getFullYear(), realDate.getMonth(), realDate.getDate());
+      var weekday = realDate.getDay();
+      var holidayName = HOLIDAYS[key];
+      var rec = records[key];
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "day-cell";
+      if (c.outside) btn.className += " outside";
+      if (key === todayKey) btn.className += " today";
+      if (weekday === 0 || holidayName) btn.className += " sun holiday";
+      else if (weekday === 6) btn.className += " sat";
+
+      var num = document.createElement("div");
+      num.className = "num";
+      num.textContent = c.d;
+      btn.appendChild(num);
+
+      if (holidayName) {
+        var hn = document.createElement("div");
+        hn.className = "holiday-name";
+        hn.textContent = holidayName;
+        btn.appendChild(hn);
+      }
+
+      var chips = document.createElement("div");
+      chips.className = "chips";
+      if (rec && rec.shift) chips.appendChild(makeChip(rec.shift === "午前" ? "am" : "pm", rec.shift));
+      if (rec && rec.drop) chips.appendChild(makeChip("go", rec.drop.replace(/^0/, "")));
+      if (rec && rec.pick) chips.appendChild(makeChip("go2", rec.pick.replace(/^0/, "")));
+      btn.appendChild(chips);
+
+      if (rec && rec.memo && rec.memo.trim()) {
+        var dot = document.createElement("div");
+        dot.className = "memo-dot";
+        btn.appendChild(dot);
+      }
+
+      btn.addEventListener("click", function () { openSheet(key); });
+      calGrid.appendChild(btn);
+    });
+
+    renderSummary();
+  }
+
+  function makeChip(kind, text) {
+    var s = document.createElement("span");
+    s.className = "chip " + kind;
+    s.textContent = text;
+    return s;
+  }
+
+  function renderSummary() {
+    summaryLabel.textContent = (viewMonth + 1) + "月の予定";
+    var keys = Object.keys(records).filter(function (k) {
+      var parts = k.split("-");
+      return parseInt(parts[0], 10) === viewYear && parseInt(parts[1], 10) === viewMonth + 1 && hasEntry(records[k]);
+    }).sort();
+
+    summaryList.innerHTML = "";
+    if (keys.length === 0) {
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "この月の予定はまだありません";
+      summaryList.appendChild(empty);
+      return;
+    }
+
+    keys.forEach(function (key) {
+      var rec = records[key];
+      var d = parseInt(key.split("-")[2], 10);
+      var wd = new Date(key).getDay();
+      var wdChar = ["日", "月", "火", "水", "木", "金", "土"][wd];
+
+      var row = document.createElement("div");
+      row.className = "summary-row";
+
+      var dateEl = document.createElement("div");
+      dateEl.className = "sdate";
+      dateEl.textContent = d + "日(" + wdChar + ")";
+      row.appendChild(dateEl);
+
+      var body = document.createElement("div");
+      body.className = "sbody";
+
+      var chipsRow = document.createElement("div");
+      chipsRow.className = "schips";
+      if (rec.shift) chipsRow.appendChild(makeChip(rec.shift === "午前" ? "am" : "pm", rec.shift));
+      if (rec.drop || rec.pick) {
+        var t = "送迎 " + (rec.drop || "―") + "〜" + (rec.pick || "―");
+        chipsRow.appendChild(makeChip("go", t));
+      }
+      if (chipsRow.children.length > 0) body.appendChild(chipsRow);
+
+      if (rec.memo && rec.memo.trim()) {
+        var memoEl = document.createElement("div");
+        memoEl.className = "smemo";
+        memoEl.textContent = rec.memo;
+        body.appendChild(memoEl);
+      }
+
+      row.appendChild(body);
+      summaryList.appendChild(row);
+    });
+  }
+
+  function openSheet(key) {
+    activeKey = key;
+    var rec = records[key] || {};
+    var parts = key.split("-");
+    var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+    var wd = new Date(key).getDay();
+    var wdChar = ["日", "月", "火", "水", "木", "金", "土"][wd];
+    sheetDate.textContent = y + "年" + m + "月" + d + "日(" + wdChar + ")";
+
+    shiftSel.value = rec.shift || "";
+    var last = records["_last"] || {};
+    var isNewDay = !records[key];
+    dropSel.value = rec.drop || (isNewDay ? (last.drop || "") : "");
+    pickSel.value = rec.pick || (isNewDay ? (last.pick || "") : "");
+    memoField.value = rec.memo || "";
+
+    overlay.classList.add("open");
+    sheet.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeSheet() {
+    overlay.classList.remove("open");
+    sheet.classList.remove("open");
+    document.body.style.overflow = "";
+    activeKey = null;
+  }
+
+  document.getElementById("saveBtn").addEventListener("click", function () {
+    if (!activeKey) return;
+    var rec = {
+      shift: shiftSel.value,
+      drop: dropSel.value,
+      pick: pickSel.value,
+      memo: memoField.value
+    };
+    if (hasEntry(rec)) {
+      records[activeKey] = rec;
+    } else {
+      delete records[activeKey];
+    }
+    if (rec.drop || rec.pick) {
+      var lastSaved = records["_last"] || {};
+      if (rec.drop) lastSaved.drop = rec.drop;
+      if (rec.pick) lastSaved.pick = rec.pick;
+      records["_last"] = lastSaved;
+    }
+    persist();
+    closeSheet();
+    render();
+  });
+
+  document.getElementById("deleteBtn").addEventListener("click", function () {
+    if (!activeKey) return;
+    delete records[activeKey];
+    persist();
+    closeSheet();
+    render();
+  });
+
+  document.getElementById("closeBtn").addEventListener("click", closeSheet);
+  overlay.addEventListener("click", closeSheet);
+
+  document.getElementById("prevBtn").addEventListener("click", function () {
+    viewMonth--;
+    if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    render();
+  });
+  document.getElementById("nextBtn").addEventListener("click", function () {
+    viewMonth++;
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    render();
+  });
+
+  render();
+
+  // ask the browser to keep this site's data (helps against automatic clearing)
+  try {
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+  } catch (e) {}
+
+  var bkOverlay = document.getElementById("bkOverlay");
+  var bkSheet = document.getElementById("bkSheet");
+  var bkText = document.getElementById("bkText");
+
+  function openBackup() {
+    bkText.value = JSON.stringify(records);
+    bkOverlay.classList.add("open");
+    bkSheet.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function closeBackup() {
+    bkOverlay.classList.remove("open");
+    bkSheet.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  document.getElementById("backupBtn").addEventListener("click", openBackup);
+  document.getElementById("bkClose").addEventListener("click", closeBackup);
+  bkOverlay.addEventListener("click", closeBackup);
+
+  document.getElementById("bkCopy").addEventListener("click", function () {
+    var text = JSON.stringify(records);
+    bkText.value = text;
+    var done = function () { alert("コピーしました。メモ帳などに貼り付けて保存してください。"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () {
+        bkText.focus(); bkText.select();
+        alert("自動でコピーできませんでした。表示された文字を長押ししてコピーしてください。");
+      });
+    } else {
+      bkText.focus(); bkText.select();
+      try { document.execCommand("copy"); done(); } catch (e) {
+        alert("表示された文字を長押ししてコピーしてください。");
+      }
+    }
+  });
+
+  document.getElementById("bkRestore").addEventListener("click", function () {
+    var parsed;
+    try {
+      parsed = JSON.parse(bkText.value);
+    } catch (e) {
+      alert("読み込めませんでした。コピーした文字をそのまま貼り付けてください。");
+      return;
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      alert("読み込めませんでした。コピーした文字をそのまま貼り付けてください。");
+      return;
+    }
+    var clean = {};
+    Object.keys(parsed).forEach(function (k) {
+      var r = parsed[k];
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !r || typeof r !== "object") return;
+      var item = {
+        shift: r.shift === "午前" || r.shift === "午後" ? r.shift : "",
+        drop: typeof r.drop === "string" ? r.drop : "",
+        pick: typeof r.pick === "string" ? r.pick : "",
+        memo: typeof r.memo === "string" ? r.memo : ""
+      };
+      if (hasEntry(item)) clean[k] = item;
+    });
+    var n = Object.keys(clean).length;
+    if (parsed._last && typeof parsed._last === "object") {
+      clean._last = {
+        drop: typeof parsed._last.drop === "string" ? parsed._last.drop : "",
+        pick: typeof parsed._last.pick === "string" ? parsed._last.pick : ""
+      };
+    }
+    if (!confirm("今ある予定を、貼り付けた内容(" + n + "日分)に置き換えます。よろしいですか?")) return;
+    records = clean;
+    persist();
+    closeBackup();
+    render();
+  });
+})();
+</script>
+</body>
+</html>
